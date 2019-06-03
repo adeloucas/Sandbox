@@ -1,85 +1,111 @@
 """
-ORACC File Reader. Ideally a one-stop shop of taking ORACC data and absorbing it
-for analysis akin to CDLI data for CLTK. If not, FileImport and 'Reader' can be
-separated off just like File Importer and CDLI Importer currently on CLTK.
-
-Right now, I am working on 'load corpus', which will, upon acknowledgement that
-ones file system is as was downloaded from ORACC's .json files accessible at
-https://github.com/oracc/json, it will take the .catalogue and subsequent
-'corpusjson' folder and its derivative .json files and allow users to take
-text on an individual and corpus-level basis and prepare the texts for analysis.
+WIP: ingest text is almost entirely based off work based off work by Willis Monroe:
+https://gist.github.com/willismonroe/e3dbc9ba0ee834befae82fb641535783
 """
-
-import json
-import os
 
 __author__ = ['Andrew Deloucas <ADeloucas@g.harvard.com>']
 __license__ = 'MIT License. See LICENSE.'
 
-
-class FileImport(object):
+class Reader(object):
     """
-    Takes a text file and prepares it in two ways: as a whole (raw_file) and as
-    a list of strings denoting the text line by line.
+    Fulfills function of calling both individual and corpus level texts for analysis
     """
-    def __init__(self, filename):
+    def __init__(self, filedata):
         """
         :param filename: catalogue.json file from downloaded corpus from ORACC.
         """
-        self.filename = filename
+        self.filedata = filedata
+        self.texts = filedata['members']
 
-    def read_catalogue(self):
+    def __ingest_text__(self, call_number):  # pylint: disable=too-many-branches
         """
-        Takes a text file and prepares it for analysis.
+        Reads cdl documentation and outputs information into sections to be printed later.
+        Can be used on a single text, otherwise is used on each text in ingest_corpus.
+        :param call_number: Whichever text you wish to access in filedata[members]
+        :return:
         """
-        if self.filename.endswith('catalogue.json'):
-            with open(self.filename, encoding="utf8") as json_file:
-                self.filedata = json.load(json_file)  # pylint: disable= attribute-defined-outside-init
-        else:
-            print('File must be catalogue.json')
+        self.data = self.texts[call_number]['text_file']  # pylint: disable= attribute-defined-outside-init
+        for node in self.data['cdl'][0]['cdl']:
+            if 'cdl' in node.keys():
+                self.text = node['cdl'][0]['cdl']  # pylint: disable= attribute-defined-outside-init
 
-    def print_catalogue(self):
-        """
-        Prints catalogue
-        :return: printed catalogue
-        """
-        try:
-            if self.filedata:
-                print('Catalogue of Texts:')
-                print()
-                print("{number:>8} {text:<20} {id_composite:<10}". \
-                      format(number='', text='Publication Name', id_composite='Call Number'))
-                print('       -------------------------------')
-                texts = self.filedata['members']
-                for i, text in enumerate(texts.items()):
-                    print("{number:>6}.| {text:<20} {id_composite:<10}". \
-                          format(number=i+1, text=text[1]['display_name'], \
-                                 id_composite=text[1]['id_composite']))
-        except AttributeError:
-            print("Must 'read_catalogue' first!")
+        transliteration = []
+        line = ''
+        for node in self.text:
+            if node['node'] == 'd' and 'label' in node.keys():
+                transliteration.append(line)
+                line = node['label'] + '.'
+            elif node['node'] == 'l':
+                line += ' ' + node['frag']
+        transliteration.append(line)
+        normalization = []
+        line = ''
+        for node in self.text:
+            if node['node'] == 'd' and 'label' in node.keys():
+                normalization.append(line)
+                line = node['label'] + '.'
+            elif node['node'] == 'l':
+                if 'norm' in node['f'].keys():
+                    line += ' ' + node['f']['norm']
+                else:
+                    line += ' ' + node['f']['form']
+        normalization.append(line)
+        lit_trans = []
+        line = ''
+        for node in self.text:
+            if node['node'] == 'd' and 'label' in node.keys():
+                lit_trans.append(line)
+                line = node['label'] + '.'
+            elif node['node'] == 'l':
+                if 'sense' in node['f'].keys():
+                    line += ' ' + node['f']['sense']
+                else:
+                    line += ' ' + node['f']['form']
+        lit_trans.append(line)
 
-    def load_corpus(self):
-        """
-        Loads 'corpusjson' folder associated with catalogue.
-        :return: added dictionary value in .catalogue file containing the json file of the text?
-                 Maybe just a reference to the .json file? Is that even possible?
-        """
-        pathway = os.path.split(self.filename)
-        self.catalog = sorted(os.listdir(pathway[0]))  # pylint: disable= attribute-defined-outside-init
-        for folder in self.catalog:
-            if not folder == 'corpusjson':
-                print('pppfffftt, not this item, chummo.')  # To be deleted after else is satisfied.
-                #pass
-            else:
-                print("Corpus able to be loaded")
-                # os.walk() (?)
-                # Goal: Open folder, add individual json text files to catalogue dictionary above
+        self.data.update({'transliteration': transliteration})
+        self.data.update({'normalization': normalization})
+        self.data.update({'lit_trans': lit_trans})
 
+        return # print('{text} ingested. \n'
+                     # '{len1} lines of transliteration \n'
+                     # '{len2} lines of normalization \n'
+                     # '{len3} lines of literal translation'. \
+                     # format(text=call_number, len1=len(transliteration)-1,
+                     #        len2=len(normalization)-1, len3=len(lit_trans)-1))
 
-## class Reader(object):
-    # """
-    # 'Fulfills function of calling both individual and corpus level texts for analysis'
-    # """
-    #     def single_text(self, ):
-    #
-    #     def corpus(self, ):
+    def print_single_text(self, call_number):
+        """
+        Prints and ingests only the one text.
+        :param call_number: text you wish to print.
+        :return:
+        """
+
+        self.__ingest_text__(call_number)
+        print()
+        print('Transliteration:')
+        print('\n'.join(self.data['transliteration'][1:]))
+        print()
+        print('Normalization:')
+        print('\n'.join(self.data['normalization'][1:]))
+        print()
+        print('Literal Translation:')
+        print('\n'.join(self.data['lit_trans'][1:]))
+
+    def print_toc(self):
+        """
+        Prints the items available for individual printing...
+        """
+        print('Table of Contents:')
+        print('\n'.join([x for x in self.texts]))
+
+    def ingest_corpus(self):
+        """
+        Reads a single text
+        :param call_number: Whichever text you wish to access in filedata[members]
+        :return: the text
+        """
+        print('Ingesting corpus...')
+        for call_number in self.texts:
+            self.__ingest_text__(call_number)
+            print('{x} is ingested!'.format(x=call_number))

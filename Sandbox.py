@@ -1,26 +1,48 @@
 """
-JSON File Reader.
+JSON File Reader Trial
 """
 
-from jsonreader import FileImport
+from jsonimporter import FileImport
+from jsonreader import Reader
 import os
 
 ## The following directs the program to look at wherever your json files are stored.
 
 parent_directory = os.path.expanduser('~')
 file = os.path.join(parent_directory, 'Python', 'Sandbox', 'rinap32', 'catalogue.json')
-# print(os.path.isfile(file))
-# print(file)
 
-## This Feature imports the .json catalogue it was directed toward, then reads(, prints,) and loads it.
+## This feature imports the .json catalogue it was directed toward, then reads(, prints,) and loads it.
 
 FI = FileImport(file)
+#print()
+#print("Read Catalogue:")
 FI.read_catalogue()
-# (Optional, but probably best after loading corpus so one can know which text they wish to analyze?)
-FI.print_catalogue()
-print()
-#
+#print()
+#print("Load Corpus into Catalogue:")
 FI.load_corpus()
+#print()
+#print('Print Catalogue:')
+#FI.print_catalogue()
+#print()
 
-## From here, import a "call" feature, which lets you analyze corpora on a publication and individual text basis.
-## Right now, this is being set up also in jsonreader.py, but under the class "Reader", bracketed out.
+## This feature ingests texts on a corpus or single level basis from FileImport
+# Still WIP
+
+RE = Reader(FI.filedata)
+print()
+print('QTEST')
+RE.print_single_text('QTEST')
+print()
+print('Q003475')
+RE.print_single_text('Q003475')
+print()
+print("Print Text Keys:")
+print()
+RE.print_toc()
+print()
+RE.ingest_corpus()
+print()
+print(RE.data['textid'])
+RE.__ingest_text__('Q003475')
+print(RE.data['textid'])
+# problem: data looks at last entry, not at every entry...

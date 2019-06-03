@@ -33,32 +33,9 @@
       "popular_name": "First Campaign Cylinder",
       "supergenre": "LIT"
     },
-    "Q004089": {
-      "langs": "0x08000000",
+    "QTEST": {"langs": "0x08000000",
       "project": "rinap/rinap3",
-      "display_name": "RINAP 3 2002",
-      "id_composite": "Q004089",
-      "designation": "Sennacherib 2002",
-      "primary_publication": "Sennacherib 2002",
-      "provenience": "Ashur",
-      "pleiades_id": "893945",
-      "pleiades_coord": "[43.248333,35.520667]",
-      "pleaides_id": "893945",
-      "period": "Neo-Assyrian",
-      "ruler": "Sennacherib",
-      "language": "Akkadian",
-      "script_type": "Cuneiform",
-      "script": "Neo-Assyrian",
-      "script_remarks": "inscribed",
-      "genre": "Royal Inscription",
-      "subgenre": "Sennacherib",
-      "material": "stone",
-      "object_type": "vessel",
-      "collection": "Vorderasiatisches Museum, Berlin, Germany; Arkeoloji Müzerleri, Istanbul, Turkey",
-      "exemplars": "VA Ass 02255 (Ass 00185); Ist EŞEM 04622 (Ass 00218 + Ass 00219)",
-      "credits": "Copyright A. Kirk Grayson, Jamie Novotny, and the Royal Inscriptions of the Neo-Assyrian Period (RINAP) Project, 2014. Lemmatized by Jamie Novotny, 2013. The annotated edition is released under the Creative Commons Attribution Share-Alike license 3.0.",
-      "popular_name": "VA Ass 02255 / EŞ 04622 (Tašmētu-šarrat amphoras)",
-      "supergenre": "LIT"
+      "id_composite": "QTEST"
     }
   }
 }
