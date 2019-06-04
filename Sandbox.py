@@ -2,9 +2,18 @@
 JSON File Reader Trial
 """
 
-from jsonimporter import FileImport
+from oracc_importer import FileImport
+# from jsonimporter import ORACCUnzip
 from jsonreader import Reader
 import os
+
+
+# parent_directory = os.path.expanduser('~')
+# folder = os.path.join(parent_directory, 'Python', 'json-master', 'json-master')
+# target = os.path.join(parent_directory)
+
+# FI = ORACCUnzip(folder, target)
+# FI.unzip()
 
 ## The following directs the program to look at wherever your json files are stored.
 
@@ -45,4 +54,6 @@ print()
 print(RE.data['textid'])
 RE.__ingest_text__('Q003475')
 print(RE.data['textid'])
+
+
 # problem: data looks at last entry, not at every entry...
