@@ -1,9 +1,8 @@
 """
 The Importer feature sets up the ability to work with cuneiform text(s)
-one-on-one, whether it is the Code of Hammurabi, a collection of texts such as
-ARM01, or whatever your research desires.
+from ORACC.
 
-This oracc_importer module is for unzipping text files downloaded through
+This module is for unzipping ORACC text files downloaded through
 CLTK's corpora, as well as importing the texts for further work.
 
 ORACC can be downloaded through CLTK:
@@ -28,22 +27,21 @@ class ORACCUnzip(object):  # pylint: disable=too-few-public-methods
     recently downloaded, but hasn't been manually unzipped yet.
 
     It needs two requirements:
-    1) Folder = location of ORACC files, most commonly:
-        os.path.join(os.path.expanduser('~'), \
-                     'Python', 'json-master', 'json-master')
-    2) Target Directory Location = where you'd like to unzip
-       the files for ease of access.
+    1) Folder = location of ORACC files, most commonly
+       'os.path.join(os.path.expanduser('~'), 'Python', 'json-master', 'json-master')
+    2) Target Directory = location where you'd like
+       to unzip.
     """
-    def __init__(self, folder, target_directory_location):
+    def __init__(self, folder, target_directory):
 
         self.folder = folder
         self.zip = []
-        self.target_directory_location = target_directory_location
+        self.target_directory = target_directory
 
     def unzip(self):
         """
         This function unzips your documents.
-        :return: A folder with all the .json documents downloaded.
+        :return: A folder with all the .json documents unzipped.
         """
         for f in os.walk(self.folder):  # pylint: disable=invalid-name
             for x in f[2]:  # pylint: disable=invalid-name
@@ -53,15 +51,32 @@ class ORACCUnzip(object):  # pylint: disable=too-few-public-methods
         os.chdir(self.folder)
         for file in self.zip:
             with ZipFile(file, 'r') as zip_obj:
-                zip_obj.extractall(self.target_directory_location)
+                try:
+                    os.mkdir('ORACC-Files')
+                    destination = os.path.join(self.target_directory, 'ORACC-Files')
+                    zip_obj.extractall(destination)
+                except FileExistsError:
+                    destination = os.path.join(self.target_directory, 'ORACC-Files')
+                    zip_obj.extractall(destination)
         os.chdir(cwd)
 
 
 class FileImport(object):
     """
     This class checks for .json files (read_catalogue) and imports their
-    text for further work (load_corpus). Examining the files can be done
-    through 'print_catalogue'.
+    text for further work (load_corpus). Usable files are viewable with
+    the function 'print_catalogue'.
+
+    Some notes:
+        1) Arrim and ogsl don't work: ogsl is not text-based and arrim is empty.
+        2) Similarly, aemw/alalakh/idrimi, armep, cmawro, nimrud, oimea, qcat,
+           and xcat appear to be missing textual information as a whole.
+        3) Within other corpora, there appear to be missing textual information
+           as well, though on a lesser scale. These texts are printing out
+           as issues occur.
+        4) Load_corpus has two unknown bugs:
+            1) 127-140: Some texts run KeyErrors, and I don't know why.
+            2) 148-152: Some json files for particular texts are empty.
     """
     def __init__(self, filename):
         """
@@ -74,22 +89,24 @@ class FileImport(object):
 
     def read_catalogue(self):
         """
-        Looks for catalogue of publications listed in particular volumes. Does not
-        currently work for series (e.g. saao/saa01 works, but not saao).
+        Looks for catalogue of publications listed in particular volumes.
+        Does not work for full series (e.g. saao/saa01 works, but not just saao/).
         """
         if self.filename.endswith('catalogue.json'):
             with open(self.filename, encoding="utf8") as json_file:
                 self.filedata = json.load(json_file)  # pylint: disable= attribute-defined-outside-init
-                print('Catalogue is ready.')
+                self.message = 'Catalogue is ready.'  # pylint: disable= attribute-defined-outside-init
         else:
-            print('File must be catalogue.json.')
+            self.message = 'File must be catalogue.json.'  # pylint: disable= attribute-defined-outside-init
+        print(self.message)
 
     def load_corpus(self):
         """
         Loads 'corpusjson' folder associated into catalogue for future calling.
-        :return: added dictionary value in .catalogue file containing the json file of the text?
-                 Maybe just a reference to the .json file? Is that even possible?
+        :return: added dictionary value in .catalogue file containing json file
+        information.
         """
+        self.read_corpus = []                          # pylint: disable= attribute-defined-outside-init
         pathway = os.path.split(self.filename)
         self.catalog = sorted(os.listdir(pathway[0]))  # pylint: disable= attribute-defined-outside-init
         for file in self.catalog:
@@ -100,14 +117,38 @@ class FileImport(object):
                 os.chdir(corpus)
                 for ind_text in os.listdir(corpus):
                     if ind_text.endswith('.json'):
-                        # print('{x} has been loaded!'.format(x=ind_text))
                         f_i = open(ind_text, encoding="utf8")
-                        data = json.load(f_i)
+                        try:
+                            data = json.load(f_i)
+                            #
+                            # There are a handful of texts that don't seem to work
+                            # in the following folders, e.g.:
+                            #
+                            #      blms: Q003094, Q003097, Q003098, Q003099, Q003102,
+                            #            Q003120, Q003122, Q003152 (8/1798 texts)
+                            #     dcclt: P256059, X000101 (2/9211 texts)
+                            #      riao: P465673, X000123, X029979 (3/885 texts)
+                            #   rimanum: P405202, P405400, P405406 (3/375 texts)
+                            #
+                            # This except line allows the program to continue running
+                            # outside of these edge cases. I have no idea why these
+                            # KeyErrors have formed.
+                            #
+                            try:
+                                self.filedata['members'][data['textid']].update({'text_file': data})
+                                self.read_corpus.append(ind_text.split('.')[0])
+                                # print('{x} has been loaded!'.format(x=ind_text))
+                            except KeyError:
+                                print('error loading {x}; reason unknown.'.format(x=data['textid']))
+                        #
+                        # Some folders have empty json files, which disrupt
+                        # the program; this exempts those files. They are not
+                        # to be seen in the print_catalogue.
+                        #
+                        except json.decoder.JSONDecodeError:
+                            print('{call_number} is an empty file, did not load.'. \
+                                  format(call_number=ind_text))
                         f_i.close()
-                        if self.filedata['members'][data['textid']]:
-                            self.filedata['members'][data['textid']].update({'text_file': data})
-                        else:
-                            print('error!')
                     else:
                         print('{x} is not .json file; ignored.'.format(x=ind_text))
 
@@ -119,26 +160,22 @@ class FileImport(object):
         """
         try:
             if self.filedata:
-                print('Catalogue of Texts:')
+                print('Catalogue of Loaded Texts:')
                 print()
-                print("{number:>8} {text:<20} {id_composite:<10}". \
+                print("{number:>8} {text:<40} {id_composite:<10}". \
                       format(number='', text='Publication Name', id_composite='Call Number'))
                 print('       -------------------------------')
                 texts = self.filedata['members']
                 for i, text in enumerate(texts.items()):
-                    #
-                    # Not every catalogue uses this naming format... ideally can spot any "id":
-                    #
-                    # ex:
-                    # test = next( v for k,v in text[1].items() if k.startswith('Date'))
-                    #    [ v for k,v in text[1].items() if k.startswith('id')]
-                    #
                     try:
-                        print("{number:>6}.| {text:<20} {id_composite:<10}". \
-                              format(number=i+1, text=text[1]['display_name'],
-                                     id_composite=text[1]['id_composite']))
+                        if text[0] in self.read_corpus:
+                            print("{number:>6}.| {text:<40} {id_composite:<10}". \
+                                format(number=i+1, text=next( \
+                                a for b, a in text[1].items() if 'pub' in b or 'designation' in b),
+                                       id_composite=next( \
+                                           v for k, v in text[1].items() if 'id_' in k)))
                     except KeyError:
-                        print("{number:>6}.| {text:20} {message}". \
+                        print("{number:>6}.| {text:40} {message}". \
                               format(number=i+1, text=text[0], message='KeyError!'))
         except AttributeError:
             print("Must 'read_catalogue' first!")
