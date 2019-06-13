@@ -20,7 +20,7 @@ parent_directory = os.path.expanduser('~')
 # it was directed toward and reads(, prints,) and loads it.
 
 file = os.path.join(parent_directory, 'ORACC-Files',     # location of files
-                    'saao', 'saas2',                            # corpus
+                    'rimanum',                            # corpus
                     'catalogue.json')                    # target catalogue
 FI = FileImport(file)
 print()
@@ -31,8 +31,8 @@ print()
 #print()
 
 ## Ingests texts on a corpus or single level basis from FileImport
-#RE = Reader(FI.filedata)
-#RE.ingest_corpus()
-#RE.print_toc()
-#RE.text_information('X468674')
-#RE.print_single_text('X468674')
+RE = Reader(FI.filedata)
+RE.ingest_corpus()
+RE.print_toc()
+#RE.text_information('P424508')
+#RE.print_single_text('P450699')

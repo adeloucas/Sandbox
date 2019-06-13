@@ -126,9 +126,11 @@ class FileImport(object):
                             #
                             #      blms: Q003094, Q003097, Q003098, Q003099, Q003102,
                             #            Q003120, Q003122, Q003152 (8/1798 texts)
-                            #     dcclt: P256059, X000101 (2/9211 texts)
                             #      riao: P465673, X000123, X029979 (3/885 texts)
                             #   rimanum: P405202, P405400, P405406 (3/375 texts)
+                            #     dcclt: P256059, X000101 (2/9211 texts)
+                            #       1 each for rinap/sources, /scores, saao/saa04,
+                            #                  /saa05, /saa08, /saa15, /saa18
                             #
                             # This except line allows the program to continue running
                             # outside of these edge cases. I have no idea why these
@@ -139,14 +141,14 @@ class FileImport(object):
                                 self.read_corpus.append(ind_text.split('.')[0])
                                 # print('{x} has been loaded!'.format(x=ind_text))
                             except KeyError:
-                                print('error loading {x}; reason unknown.'.format(x=data['textid']))
+                                print('error loading {x}; reason unknown! (Text Fail 2)'.format(x=data['textid']))
                         #
                         # Some folders have empty json files, which disrupt
                         # the program; this exempts those files. They are not
                         # to be seen in the print_catalogue.
                         #
                         except json.decoder.JSONDecodeError:
-                            print('{call_number} is an empty file, did not load.'. \
+                            print('{call_number} does not have information, did not load. (Text Fail 1)'. \
                                   format(call_number=ind_text))
                         f_i.close()
                     else:

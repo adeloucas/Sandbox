@@ -26,60 +26,56 @@ class Reader(object):
         :param call_number: Whichever text you wish to access in filedata[members]
         :return:
         """
-        try:
-            if 'text_file' in self.texts[call_number]:
-                self.data = self.texts[call_number]['text_file']  # pylint: disable= attribute-defined-outside-init
-                for node in self.data['cdl'][0]['cdl']:
-                    if 'cdl' in node.keys():
-                        self.text = node['cdl'][0]['cdl']  # pylint: disable= attribute-defined-outside-init
-                transliteration = []
-                line = ''
-                for node in self.text:
-                    if node['node'] == 'd' and 'label' in node.keys():
-                        transliteration.append(line)
-                        line = node['label'] + '.'
-                    elif node['node'] == 'l':
-                        try:
-                            line += ' ' + node['frag']
-                        except KeyError:
-                            line += ' ' + node['f']['form']
-                transliteration.append(line)
-                normalization = []
-                line = ''
-                for node in self.text:
-                    if node['node'] == 'd' and 'label' in node.keys():
-                        normalization.append(line)
-                        line = node['label'] + '.'
-                    elif node['node'] == 'l':
-                        if 'norm' in node['f'].keys():
-                            line += ' ' + node['f']['norm']
-                        else:
-                            line += ' ' + node['f']['form']
-                normalization.append(line)
-                lit_trans = []
-                line = ''
-                for node in self.text:
-                    if node['node'] == 'd' and 'label' in node.keys():
-                        lit_trans.append(line)
-                        line = node['label'] + '.'
-                    elif node['node'] == 'l':
-                        if 'sense' in node['f'].keys():
-                            line += ' ' + node['f']['sense']
-                        else:
-                            line += ' ' + node['f']['form']
-                lit_trans.append(line)
-                self.data['transliteration'] = transliteration
-                self.data.update({'normalization': normalization})
-                self.data.update({'lit_trans': lit_trans})
-            else:
-                self.failed_texts.append(call_number)
-                # print('{text} does not contain textual information.'.format(text=call_number))
-        except KeyError:
+        if 'text_file' in self.texts[call_number]:
+            self.data = self.texts[call_number]['text_file']  # pylint: disable= attribute-defined-outside-init
+            for node in self.data['cdl'][0]['cdl']:
+                if 'cdl' in node.keys():
+                    self.text = node['cdl'][0]['cdl']  # pylint: disable= attribute-defined-outside-init
+                # fixes P424508 in saas2, only edgecase.
+                elif AttributeError:
+                    self.text = self.data['cdl'][0]['cdl']
+            transliteration = []
+            line = ''
+            for node in self.text:
+                if node['node'] == 'd' and 'label' in node.keys():
+                    transliteration.append(line)
+                    line = node['label'] + '.'
+                elif node['node'] == 'l':
+                    try:
+                        line += ' ' + node['frag']
+                    except KeyError:
+                        line += ' ' + node['f']['form']
+            transliteration.append(line)
+            normalization = []
+            line = ''
+            for node in self.text:
+                if node['node'] == 'd' and 'label' in node.keys():
+                    normalization.append(line)
+                    line = node['label'] + '.'
+                elif node['node'] == 'l':
+                    if 'norm' in node['f'].keys():
+                        line += ' ' + node['f']['norm']
+                    else:
+                        line += ' ' + node['f']['form']
+            normalization.append(line)
+            lit_trans = []
+            line = ''
+            for node in self.text:
+                if node['node'] == 'd' and 'label' in node.keys():
+                    lit_trans.append(line)
+                    line = node['label'] + '.'
+                elif node['node'] == 'l':
+                    if 'sense' in node['f'].keys():
+                        line += ' ' + node['f']['sense']
+                    else:
+                        line += ' ' + node['f']['form']
+            lit_trans.append(line)
+            self.data['transliteration'] = transliteration
+            self.data.update({'normalization': normalization})
+            self.data.update({'lit_trans': lit_trans})
+        else:
             self.failed_texts.append(call_number)
-            # print('{text} has run into KeyError(?)'.format(text=call_number))
-        except AttributeError:
-            self.failed_texts.append(call_number)
-            print('{text} has run into Attribute Error(?)'.format(text=call_number))
+            print('{text} did not ingest; text either empty or missing. (Text Fail 1)'.format(text=call_number))
 
     def ingest_corpus(self):
         """
