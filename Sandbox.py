@@ -41,6 +41,6 @@ RE = Reader(FI.filedata)
 RE.ingest_corpus()
 RE.print_toc()
 
-RE.text_information('P424508')
-RE.print_single_text('P424508')
+RE.text_information('P338498')
+RE.print_single_text('P338498')
 

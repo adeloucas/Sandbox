@@ -29,22 +29,38 @@ class Reader(object):
         line = ''
         for text in self.data['cdl'][0]['cdl']:
             if text['node'] == 'c':
-                section.append(text['cdl'])
+                try:
+                    section.append(text['cdl'])
+                #cams/gkab
+                except KeyError:
+                    pass
         # checks if sections have sentence structure; otherwise taken as single text.
         for sentences in section:
             if len(sentences) > 6:
                 for node in sentences:
                     if node['node'] == 'c':
                         transliteration.append(line)
-                        line = node['label'] + '.'
-                        for cdl in node['cdl']:
-                            if cdl == 'd' and 'label' in cdl.keys():
-                                line = cdl['label'] + '.'
-                            elif cdl['node'] == 'l':
-                                try:
-                                    line += ' ' + cdl['frag']
-                                except KeyError:
-                                    line += ' ' + cdl['f']['form']
+                        try:
+                            line = node['label'] + '.'
+                            for cdl in node['cdl']:
+                                if cdl == 'd' and 'label' in cdl.keys():
+                                    line = cdl['label'] + '.'
+                                elif cdl['node'] == 'l':
+                                    try:
+                                        line += ' ' + cdl['frag']
+                                    except KeyError:
+                                        line += ' ' + cdl['f']['form']
+                        #cams/gkab
+                        except KeyError:
+                            line = ''
+                            for x in node['cdl']:
+                                if 'label' in x.keys():
+                                    line = x['label'] + '.'
+                                elif x['node'] == 'l':
+                                    try:
+                                        line += ' ' + x['frag']
+                                    except KeyError:
+                                        line += ' ' + x['f']['form']
             else:
                 for node in self.text:
                     if node['node'] == 'd' and 'label' in node.keys():
@@ -147,10 +163,14 @@ class Reader(object):
             self.data = self.texts[call_number]['text_file']  # pylint: disable= attribute-defined-outside-init
             for node in self.data['cdl'][0]['cdl']:
                 if 'cdl' in node.keys():
-                    self.text = node['cdl'][0]['cdl']  # pylint: disable= attribute-defined-outside-init
+                    try:
+                        self.text = node['cdl'][0]['cdl']  # pylint: disable= attribute-defined-outside-init
+                    #cams/gkab
+                    except KeyError:
+                        self.text = node['cdl']
             self.__transliteration__()
-            self.__normalization__()
-            self.__cuneiform__()
+            #self.__normalization__()
+            #self.__cuneiform__()
         else:
             self.failed_texts.append(call_number)
             print('{text} did not ingest; text either empty or missing. (Text Fail 1)'.format(text=call_number))
