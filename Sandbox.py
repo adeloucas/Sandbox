@@ -38,9 +38,9 @@ print()
 ## Ingests texts on a corpus or single level basis from FileImport
 #
 RE = Reader(FI.filedata)
-RE.ingest_corpus()
-RE.print_toc()
+#RE.ingest_corpus()
+#RE.print_toc()
 
-RE.text_information('P338498')
-RE.print_single_text('P338498')
+#RE.text_information('P338333')
+RE.print_single_text('P348735')
 

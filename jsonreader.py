@@ -30,8 +30,12 @@ class Reader(object):
         for text in self.data['cdl'][0]['cdl']:
             if text['node'] == 'c':
                 try:
-                    section.append(text['cdl'])
-                #cams/gkab
+                    # edgecase... only one, I think?
+                    if text['id'] == 'P348480.U28':
+                        for x in text['cdl']:
+                            section[0].append(x)
+                    else:
+                        section.append(text['cdl'])
                 except KeyError:
                     pass
         # checks if sections have sentence structure; otherwise taken as single text.
@@ -159,6 +163,7 @@ class Reader(object):
         :param call_number: Whichever text you wish to access in filedata[members]
         :return:
         """
+
         if 'text_file' in self.texts[call_number]:
             self.data = self.texts[call_number]['text_file']  # pylint: disable= attribute-defined-outside-init
             for node in self.data['cdl'][0]['cdl']:
@@ -167,7 +172,9 @@ class Reader(object):
                         self.text = node['cdl'][0]['cdl']  # pylint: disable= attribute-defined-outside-init
                     #cams/gkab
                     except KeyError:
-                        self.text = node['cdl']
+                        for cdl in node['cdl']:
+                            if cdl['node'] == 'c':
+                                self.text = cdl['cdl']
             self.__transliteration__()
             #self.__normalization__()
             #self.__cuneiform__()
@@ -232,20 +239,23 @@ class Reader(object):
         :param call_number: text you wish to print.
         :return:
         """
-        if call_number in self.texts and call_number not in self.failed_texts:
-            text = self.texts[call_number]['text_file']
-            if len(catalog_filter) > 0:  # pylint: disable=len-as-condition
-                if catalog_filter in text:
-                    if catalog_filter == 'transliteration':
-                        print('\n'.join([line for line in text[catalog_filter]]))
-                    elif text[catalog_filter] == text['transliteration']:
-                        print('Filter not available.')
-                    else:
-                        print('\n'.join([line for line in text[catalog_filter]]))
+        self.__ingest_text__(call_number)
+        text = self.texts[call_number]['text_file']
+        #unhash, shift over one when ready to integrate ingest corpus back after debug
+        #if call_number in self.texts and call_number not in self.failed_texts:
+        #    text = self.texts[call_number]['text_file']
+        if len(catalog_filter) > 0:  # pylint: disable=len-as-condition
+            if catalog_filter in text:
+                if catalog_filter == 'transliteration':
+                    print('\n'.join([line for line in text[catalog_filter]]))
+                elif text[catalog_filter] == text['transliteration']:
+                    print('Filter not available.')
                 else:
-                    print('not a filter, use text_information for available filters.')
-                    # make section that shows which filters are available (len > 0?)
+                    print('\n'.join([line for line in text[catalog_filter]]))
             else:
-                print('\n'.join([line for line in text['transliteration']]))
+                print('not a filter, use text_information for available filters.')
+                # make section that shows which filters are available (len > 0?)
         else:
-            print('Text does not exist in this corpus.')
+            print('\n'.join([line for line in text['transliteration']]))
+        #else:
+        #    print('Text does not exist in this corpus.')
