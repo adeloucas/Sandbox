@@ -1,0 +1,89 @@
+
+
+INFO on corpora
+
+      PROJECT          CORPUS   Load_Corpus   Ingest_Corpus Print
+5        CAMS            Anzu             Y               Y     Y
+6           -          Barutu             Y               Y     Y
+7           -           Etana             Y               Y     Y
+9           -          Ludlul             Y               Y     Y
+10          -           Selbi             Y               Y     Y
+15       CTIJ            ctij             Y               Y     Y
+20     ETCSRI          etcsri             Y               Y     Y
+34       RIBO        babylon3             Y               Y     Y
+35          -        babylon4             Y               Y     Y
+38          -        babylon7             Y               Y     Y
+39          -        babylon8             Y               Y     Y
+41          -         sources             Y               Y     Y
+44      RINAP          rinap1             Y               Y     Y
+45          -          rinap3             Y               Y     Y
+53       SAAO           saa02             Y               Y     Y
+54          -           saa03             Y               Y     Y
+61          -           saa09             Y               Y     Y
+62          -           saa10             Y               Y     Y
+63          -           saa11             Y               Y     Y
+65          -           saa13             Y               Y     Y
+68          -           saa16             Y               Y     Y
+69          -           saa17             Y               Y     Y
+71          -           saa19             Y               Y     Y
+73       SUHU            suhu             Y               Y     Y
+ -          -               -             -               -     -
+00  Error 1 =     Empty Texts             -               -     -
+ -          -               -             -               -     -
+8        CAMS            Gkab   Error 1 = 2  Error 1 = 1640     Y
+11       CCPO            ccpo             Y     Error 1 = 1     Y
+12       CKST            ckst             Y   Error 1 = 131     Y
+14    CONTRIB          Amarna             Y    Error 1 = 37     Y
+17          -         Nineveh             Y   Error 1 = 284     Y
+18          -       Signlists             Y  Error 1 = 2360     Y
+19      DCCMT           dccmt             Y  Error 1 = 1216     Y
+21      GLASS           glass             Y     Error 1 = 1     Y
+22      HBTIN           hbtin             Y    Error 1 = 91     Y
+23     LACOST          lacost   Error 1 = 5   Error 1 = 377     Y
+25       OBMC            obmc             Y   Error 1 = 253     Y
+26       OBTA            obta             Y    Error 1 = 83     Y
+32       RIBO      bab7scores             Y   Error 1 = 155     Y
+33          -        babylon2             Y     Error 1 = 2     Y
+36          -        babylon5             Y     Error 1 = 1     Y
+37          -        babylon6             Y     Error 1 = 1     Y
+40          -       babylon10             Y     Error 1 = 1     Y
+46      RINAP          rinap4   Error 1 = 1     Error 1 = 1     Y
+51       SAAO            knpp             Y  Error 1 = 2033     Y
+52          -           saa01             Y     Error 1 = 1     Y
+58          -           saa06   Error 1 = 6     Error 1 = 6     Y
+59          -           saa07   Error 1 = 1     Error 1 = 1     Y
+64          -           saa12   Error 1 = 2     Error 1 = 2     Y
+66          -           saa14             Y    Error 1 = 28     Y
+72          -           saas2             Y    Error 1 = 20     Y
+ -          -               -             -               -     -
+00  Error 2 =  Unknown Reason             -               -     -
+ -          -               -             -               -     -
+3        BLMS            blms   Error 2 = 8  Error 1 = 1403     Y
+16      DCCLT           dcclt   Error 2 = 2  Error 1 = 4938     Y
+30       RIAO            riao   Error 2 = 3     Error 1 = 2     Y
+42    RIMANUM         rimanum   Error 2 = 3               Y     Y
+49      RINAP         sources   Error 2 = 1   Error 1 = 136     Y
+57          -           saa05   Error 2 = 1     Error 1 = 1     Y
+60          -           saa08   Error 2 = 1               Y     Y
+67          -           saa15   Error 2 = 1     Error 1 = 3     Y
+70          -           saa18   Error 2 = 1     Error 1 = 1     Y
+ -          -               -             -               -     -
+00 Both Error               -             -               -     -
+ -          -               -             -               -     -
+47      RINAP          scores   Error 2 = 4  Error 1 = 1259     Y
+ -          -               -   Error 1 = 1               -     -
+55       SAAO           saa04   Error 2 = 1     Error 1 = 8     Y
+ -          -               -   Error 1 = 7               -     -
+ -          -               -             -               -     -
+00   Empty                  -             -               -     -
+ -          -               -             -               -     -
+0        AEMW  Alalakh/Idrimi  EMPTY CORPUS               -     -
+1       ARMEP           armep  EMPTY CORPUS               -     -
+2       ARRIM           arrim  EMPTY CORPUS               -     -
+13     CMAWRO          cmawro  EMPTY CORPUS               -     -
+24     NIMRUD           texts  EMPTY CORPUS               -     -
+28      OIMEA           oimea  EMPTY CORPUS               -     -
+29       QCAT            qcat  EMPTY CORPUS               -     -
+74       XCAT            xcat  EMPTY CORPUS               -     -
+27       OGSL            ogsl      SIGNLIST               -     -
+ -          -               -             -               -     -

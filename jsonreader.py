@@ -1,6 +1,19 @@
 """
-WIP: ingest text is almost entirely based off work based off work by Willis Monroe:
-https://gist.github.com/willismonroe/e3dbc9ba0ee834befae82fb641535783
+The Importer feature sets up the ability to work with cuneiform text(s)
+from ORACC.
+
+This module is for ingesting and preparing ORACC text files for textual
+analysis.
+
+ORACC can be downloaded through CLTK:
+    from cltk.corpus.utils.importer import CorpusImporter
+    corpus_importer = CorpusImporter('Akkadian')
+    corpus_importer.import_corpus('ORACC')
+or otherwise downloaded from ORACC's GitHub:
+    https://github.com/oracc/json
+
+This module is dependent upon the structure CLTK unzips ORACC files,
+see ORACC_Importer for more information.
 """
 
 __author__ = ['Andrew Deloucas <ADeloucas@g.harvard.com>']
@@ -9,7 +22,10 @@ __license__ = 'MIT License. See LICENSE.'
 
 class Reader(object):
     """
-    Fulfills function of calling both individual and corpus level texts for analysis
+    Fulfills function of parsing text files via sentences, if avaiable,
+    or line-by-line (WIP). Parsed work is available in transliteration
+    and possibly normalization, cuneiform reconstruction, or etc., depending
+    on the level of annotation for each independent text.
     """
     def __init__(self, filedata):
         """
@@ -19,183 +35,178 @@ class Reader(object):
         self.texts = filedata['members']
         self.failed_texts = []
 
-    def __transliteration__(self):
+    def __parse_sentence__(self):
         """
-
-        :return:
+        Takes CDL data from a text and parses data into established sentences.
+        :return: self.sentences for further parsing.
         """
-        section = []
-        transliteration = []
-        line = ''
-        for text in self.data['cdl'][0]['cdl']:
-            if text['node'] == 'c':
+        self.sentences = {}   # pylint: disable=attribute-defined-outside-init
+        for text in self.textanalysis:
+            if text['type'] == 'sentence':
+                if 'label' not in text:
+                    self.sentences[text['type']] = text['cdl']
+                else:
+                    self.sentences[text['label']] = text['cdl']
+            elif text['type'].startswith('non'):
+                pass
+            else:
                 try:
-                    # edgecase... only one, I think?
-                    if text['id'] == 'P348480.U28':
-                        for x in text['cdl']:
-                            section[0].append(x)
-                    else:
-                        section.append(text['cdl'])
+                    self.sentences['Sentence'] = text['cdl']
                 except KeyError:
                     pass
-        # checks if sections have sentence structure; otherwise taken as single text.
-        for sentences in section:
-            if len(sentences) > 6:
-                for node in sentences:
-                    if node['node'] == 'c':
-                        transliteration.append(line)
+
+    def __transliteration__(self):
+        """
+        Looks at either sentence or line-by-line structure and outputs
+        transliteration.
+        :return: transliteration found in each text's textdata.
+        """
+        self.__parse_sentence__()
+        self.text = []  # pylint: disable=attribute-defined-outside-init
+        for k, v in self.sentences.items():  # pylint: disable=redefined-outer-name
+            self.text.append(k)
+            line = []
+            for key in v:
+                if key['node'] == 'd':
+                    if 'label' in key.keys():
+                        if len(line) > 0:  # pylint: disable=len-as-condition
+                            self.text.append(line)
+                        line = key['label'] + '. '
+                    else:
                         try:
-                            line = node['label'] + '.'
-                            for cdl in node['cdl']:
-                                if cdl == 'd' and 'label' in cdl.keys():
-                                    line = cdl['label'] + '.'
-                                elif cdl['node'] == 'l':
-                                    try:
-                                        line += ' ' + cdl['frag']
-                                    except KeyError:
-                                        line += ' ' + cdl['f']['form']
-                        #cams/gkab
+                            line += key['frag'] + ' '
                         except KeyError:
-                            line = ''
-                            for x in node['cdl']:
-                                if 'label' in x.keys():
-                                    line = x['label'] + '.'
-                                elif x['node'] == 'l':
-                                    try:
-                                        line += ' ' + x['frag']
-                                    except KeyError:
-                                        line += ' ' + x['f']['form']
-            else:
-                for node in self.text:
-                    if node['node'] == 'd' and 'label' in node.keys():
-                        transliteration.append(line)
-                        line = node['label'] + '.'
-                    elif node['node'] == 'l':
-                        try:
-                            line += ' ' + node['frag']
-                        except KeyError:
-                            line += ' ' + node['f']['form']
-        transliteration.append(line)
-        self.data['transliteration'] = transliteration[1:]
+                            line += ''
+                elif key['node'] == 'l':
+                    if len(line) == 0:  # pylint: disable=len-as-condition
+                        line = k.split(' -')[0] + '. '
+                    try:
+                        if '\\' in key['frag']:
+                            line += key['f']['form'] + ' '
+                        else:
+                            line += key['frag'] + ' '
+                    except KeyError:
+                        line += key['f']['form'] + ' '
+                elif key['node'] == 'c':
+                    if key['type'] == 'phrase':
+                        for node in key['cdl']:
+                            for k, v in node.items():
+                                if k == 'f':
+                                    line += v['form'] + ' '
+                    else:
+                        for node in key['cdl']:
+                            try:
+                                line += ' ' + node['frag']
+                            except KeyError:
+                                try:
+                                    line += ' ' + node['cdl'][0]['frag']
+                                except KeyError:
+                                    line += 'ERROR! '
+                else:
+                    line += '~~~'
+            self.text.append(line)
+        self.textdata['transliteration'] = self.text
 
     def __normalization__(self):
         """
-
-        :return:
+        Looks at either sentence or line-by-line structure and outputs
+        normalization.
+        :return: normalization found in each text's textdata.
         """
-        section = []
-        normalization = []
-        line = ''
-        for text in self.data['cdl'][0]['cdl']:
-            if text['node'] == 'c':
-                section.append(text['cdl'])
-        # checks if sections have sentence structure; otherwise taken as single text.
-        for sentences in section:
-            if len(sentences) > 6:
-                for node in sentences:
-                    if node['node'] == 'c':
-                        normalization.append(line)
-                        line = node['label'] + '.'
-                        for cdl in node['cdl']:
-                            if cdl == 'd' and 'label' in cdl.keys():
-                                line = cdl['label'] + '.'
-                            elif cdl['node'] == 'l':
-                                try:
-                                    line += ' ' + cdl['f']['norm']
-                                except KeyError:
-                                    line += ' ' + cdl['f']['form']
-            else:
-                for node in self.text:
-                    if node['node'] == 'd' and 'label' in node.keys():
-                        normalization.append(line)
-                        line = node['label'] + '.'
-                    elif node['node'] == 'l':
+        self.__parse_sentence__()
+        self.text = []  # pylint: disable=attribute-defined-outside-init
+        for k, v in self.sentences.items():
+            self.text.append(k)
+            line = []
+            for key in v:
+                if key['node'] == 'd':
+                    if 'label' in key.keys():
+                        if len(line) > 0:  # pylint: disable=len-as-condition
+                            self.text.append(line)
+                        line = key['label'] + '. '
+                    else:
                         try:
-                            line += ' ' + node['f']['norm']
+                            line += key['f']['norm'] + ' '
                         except KeyError:
-                            line += ' ' + node['f']['form']
-        normalization.append(line)
-        self.data['normalization'] = normalization[1:]
-
-    def __cuneiform__(self):  # not working, same as transliteration for now
-        """
-
-        :return:
-        """
-        section = []
-        transliteration = []
-        line = ''
-        for text in self.data['cdl'][0]['cdl']:
-            if text['node'] == 'c':
-                section.append(text['cdl'])
-        # checks if sections have sentence structure; otherwise taken as single text.
-        for sentences in section:
-            if len(sentences) > 6:
-                for node in sentences:
-                    if node['node'] == 'c':
-                        transliteration.append(line)
-                        line = node['label'] + '.'
-                        for cdl in node['cdl']:
-                            if cdl == 'd' and 'label' in cdl.keys():
-                                line = cdl['label'] + '.'
-                            elif cdl['node'] == 'l':
+                            line += ''
+                elif key['node'] == 'l':
+                    if len(line) == 0:  # pylint: disable=len-as-condition
+                        line = k.split(' -')[0] + '. '
+                    try:
+                        if '\\' in key['f']['norm']:
+                            line += key['f']['form'] + ' '
+                        else:
+                            line += key['f']['norm'] + ' '
+                    except KeyError:
+                        line += key['f']['form'] + ' '
+                elif key['node'] == 'c':
+                    if key['type'] == 'phrase':
+                        for node in key['cdl']:
+                            for k, v in node.items():
+                                if k == 'f':
+                                    line += v['form'] + ' '
+                    else:
+                        for node in key['cdl']:
+                            try:
+                                line += ' ' + node['f']['norm']
+                            except KeyError:
                                 try:
-                                    line += ' ' + cdl['frag']
+                                    line += ' ' + node['cdl'][0]['f']['norm']
                                 except KeyError:
-                                    line += ' ' + cdl['f']['form']
-            else:
-                for node in self.text:
-                    if node['node'] == 'd' and 'label' in node.keys():
-                        transliteration.append(line)
-                        line = node['label'] + '.'
-                    elif node['node'] == 'l':
-                        try:
-                            line += ' ' + node['frag']
-                        except KeyError:
-                            line += ' ' + node['f']['form']
-        transliteration.append(line)
-        self.data['transliteration'] = transliteration[1:]
+                                    line += 'ERROR! '
+                else:
+                    line += '~~~'
+            self.text.append(line)
+        self.textdata['normalization'] = self.text
 
     def __ingest_text__(self, call_number):  # pylint: disable=too-many-branches
         """
         Reads cdl documentation and outputs information into sections to be printed later.
-        Can be used on a single text, otherwise is used on each text in ingest_corpus.
-        :param call_number: Whichever text you wish to access in filedata[members]
-        :return:
+        :param call_number: Text to be accessed in filedata[members] This is automatic
+                            via ingest_corpus.
+        :return: transliteration and normalization (in call_number.textdata), as well as
+                 a list of failed texts (mostly due to being empty) that filters out
+                 texts for print_toc.
         """
-
         if 'text_file' in self.texts[call_number]:
-            self.data = self.texts[call_number]['text_file']  # pylint: disable= attribute-defined-outside-init
-            for node in self.data['cdl'][0]['cdl']:
-                if 'cdl' in node.keys():
-                    try:
-                        self.text = node['cdl'][0]['cdl']  # pylint: disable= attribute-defined-outside-init
-                    #cams/gkab
-                    except KeyError:
-                        for cdl in node['cdl']:
-                            if cdl['node'] == 'c':
-                                self.text = cdl['cdl']
-            self.__transliteration__()
-            #self.__normalization__()
-            #self.__cuneiform__()
+            self.metadata = self.texts[call_number]  # pylint: disable=attribute-defined-outside-init
+            self.textdata = self.texts[call_number]['text_file']  # pylint: disable= attribute-defined-outside-init
+            for node in self.textdata['cdl']:
+                if 'linkbase' in node.keys():
+                    pass
+                else:
+                    if node['node'] == 'c' and 'cdl' in node.keys():
+                        # don't need this information for now.
+                        # obj_type.append(node['type'])
+                        obj = node['cdl']
+                        for cdl in obj:
+                            # don't need this information for now.
+                            # if cdl['node'] == 'd':
+                            #     obj_detail.append(cdl['subtype'])
+                            if cdl['node'] == 'c' and 'cdl' in cdl.keys():
+                                self.textanalysis = cdl['cdl']  # pylint: disable=attribute-defined-outside-init
+                                self.__transliteration__()
+                                self.__normalization__()
         else:
             self.failed_texts.append(call_number)
-            print('{text} did not ingest; text either empty or missing. (Text Fail 1)'.format(text=call_number))
+            print('{text} did not ingest; text either empty or missing. '
+                  '(Text Fail 1)'.format(text=call_number))
 
     def ingest_corpus(self):
         """
-        Reads a single text
-        :param call_number: Whichever text you wish to access in filedata[members]
-        :return: the text
+        Reads corpus. Main feature to use.
+        :return: Each text "ingested"; see __ingest_text__ for more information.
         """
         print('Ingesting corpus...')
         for call_number in self.texts:
             self.__ingest_text__(call_number)
+        print(len(self.failed_texts))
         print()
 
     def print_toc(self):
         """
-        Prints the items available for individual printing...
+        Prints the items available for individual printing. Unviewable texts are
+        not included.
         """
         print('Available Texts:')
         print()
@@ -212,50 +223,105 @@ class Reader(object):
                              v for k, v in ind_text[1].items() if 'id_' in k)))
         print()
 
-    def text_information(self, call_number):
-        info1 = []
-        info2 = ['cdl', 'transliteration', 'normalization', 'cuneiform']  # add filters as they are made
-        if call_number in self.texts and call_number not in self.failed_texts:
-            text = self.texts[call_number]['text_file']
-            for k, v in text.items():
-                if k not in info2:
-                    info1.append(k)
-                    print('{k}: {v}'.format(k=k, v=v))
-            print('------')
-            for k, v in self.data.items():
-                if k in info2 and k != 'cdl':
-                    if k == 'transliteration':
-                        print(('{k}: {v} lines available'.format(k=k, v=len(text['transliteration']))))
-                    elif k != 'transliteration' and v == self.data['transliteration']:
-                        pass
-                        #print('{k}: {v}'.format(k=k, v='Not available'))
-                    else:
-                        print(('{k}: {v}'.format(k=k, v='available')))
-            print()
-
-    def print_single_text(self, call_number, catalog_filter=[]):
+    def print_single_text_sentences(self, call_number, catalog_filter=[]):
         """
         Prints and ingests only the one text.
         :param call_number: text you wish to print.
         :return:
         """
-        self.__ingest_text__(call_number)
         text = self.texts[call_number]['text_file']
-        #unhash, shift over one when ready to integrate ingest corpus back after debug
-        #if call_number in self.texts and call_number not in self.failed_texts:
-        #    text = self.texts[call_number]['text_file']
         if len(catalog_filter) > 0:  # pylint: disable=len-as-condition
             if catalog_filter in text:
                 if catalog_filter == 'transliteration':
-                    print('\n'.join([line for line in text[catalog_filter]]))
+                    print('\n'.join(text[catalog_filter]))
                 elif text[catalog_filter] == text['transliteration']:
                     print('Filter not available.')
                 else:
-                    print('\n'.join([line for line in text[catalog_filter]]))
+                    print('\n'.join(text[catalog_filter]))
             else:
                 print('not a filter, use text_information for available filters.')
                 # make section that shows which filters are available (len > 0?)
         else:
-            print('\n'.join([line for line in text['transliteration']]))
-        #else:
-        #    print('Text does not exist in this corpus.')
+            try:
+                print('\n'.join(text['transliteration']))
+            except TypeError:
+                print('\n'.join([str(line) for line in text['transliteration']]))
+            except KeyError:
+                print('Text does not exist in this corpus.')
+
+    def print_single_text_lines(self, call_number):
+        """
+        Prints one text line by line.
+        :param call_number: text you wish to print.
+        :return:
+        """
+        self.__ingest_text__(call_number)
+        self.lines = []   # pylint: disable=attribute-defined-outside-init
+        self.tablet = []  # pylint: disable=attribute-defined-outside-init
+        for text in self.textanalysis:
+            for k, v in text.items():  # pylint: disable=redefined-outer-name
+                if k == 'cdl':
+                    self.lines.append(v)
+        for sets in self.lines:
+            line = []
+            for key in sets:
+                if key['node'] == 'd':
+                    if 'label' in key.keys():
+                        if len(line) > 0:  # pylint: disable=len-as-condition
+                            self.tablet.append(line)
+                        line = key['label'] + '. '
+                    else:
+                        try:
+                            line += key['frag'] + ' '
+                        except KeyError:
+                            line += ''
+                elif key['node'] == 'l':
+                    if len(line) == 0:  # pylint: disable=len-as-condition
+                        if key.keys() != 'frag':
+                            line += key['f']['form'] + ' '
+                            self.tablet[-1] += ''.join(line)
+                            line = []
+                        else:
+                            if '\\' in key['frag']:
+                                line += key['f']['form'] + ' '
+                                self.tablet[-1] += ''.join(line)
+                                line = []
+                            else:
+                                line += key['frag'] + ' '
+                                self.tablet[-1] += ''.join(line)
+                                line = []
+                    else:
+                        try:
+                            if '\\' in key['frag']:
+                                line += key['f']['form'] + ' '
+                            else:
+                                line += key['frag'] + ' '
+                        except KeyError:
+                            line += key['f']['form'] + ' '
+                elif key['node'] == 'c':
+                    if key['type'] == 'phrase':
+                        if len(line) == 0:  # pylint: disable=len-as-condition
+                            for node in key['cdl']:
+                                for k, v in node.items():
+                                    if k == 'f':
+                                        line += v['form'] + ' '
+                                        self.text[-1] += ''.join(line)
+                                        line = []
+                        else:
+                            for node in key['cdl']:
+                                for k, v in node.items():
+                                    if k == 'f':
+                                        line += v['form'] + ' '
+                    else:
+                        for node in key['cdl']:
+                            try:
+                                line += ' ' + node['frag']
+                            except KeyError:
+                                try:
+                                    line += ' ' + node['cdl'][0]['frag']
+                                except KeyError:
+                                    line += 'ERROR! '
+                else:
+                    line += '~~~'
+            self.tablet.append(line)
+        print('\n'.join(self.tablet))

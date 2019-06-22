@@ -21,7 +21,7 @@ parent_directory = os.path.expanduser('~')
 #  directed toward, reads, and loads it.
 #
 file = os.path.join(parent_directory, 'ORACC-Files',     # location of files (from unzip)
-                    'cams', 'gkab',                   # corpus
+                    'rinap', 'rinap3',                 # corpus
                     'catalogue.json')                    # target catalogue
 
 
@@ -34,13 +34,11 @@ FI.load_corpus()
 print()
 #FI.print_catalogue() # essentially useless function outside debugging
 
-
 ## Ingests texts on a corpus or single level basis from FileImport
 #
 RE = Reader(FI.filedata)
-#RE.ingest_corpus()
-#RE.print_toc()
+RE.ingest_corpus()
+RE.print_toc()
 
-#RE.text_information('P338333')
-RE.print_single_text('P348735')
-
+RE.print_single_text_sentences('Q003497')
+RE.print_single_text_lines('Q003497')
