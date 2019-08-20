@@ -1,8 +1,11 @@
-1) Clean up -- make selves things I want to pull out
-    lines, sentences, tablet/text, normalization, transliteration
+1) Clean up
 2) Condense, if possible
     get rid of tries
-3)
+3) Create tests
+4) Finalize documentation
+    bugs, (in)accessibility
+5) Integrate into CLTK
+6) Release post
 
 INFO on corpora
 
