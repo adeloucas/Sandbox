@@ -23,8 +23,8 @@ __license__ = 'MIT License. See LICENSE.'
 
 class ORACCUnzip(object):  # pylint: disable=too-few-public-methods
     """
-    This class is necessary if ORACC .json data has just been
-    recently downloaded, but hasn't been manually unzipped yet.
+    This class is necessary if ORACC .json data have just been
+    recently downloaded, but haven't been manually unzipped yet.
 
     It needs two requirements:
     1) Folder = location of ORACC files, most commonly
@@ -141,14 +141,16 @@ class FileImport(object):
                                 self.read_corpus.append(ind_text.split('.')[0])
                                 # print('{x} has been loaded!'.format(x=ind_text))
                             except KeyError:
-                                print('error loading {x}; reason unknown! (Text Fail 2)'.format(x=data['textid']))
+                                print('error loading {x}; reason unknown! '
+                                      '(Text Fail 2)'.format(x=data['textid']))
                         #
                         # Some folders have empty json files, which disrupt
                         # the program; this exempts those files. They are not
                         # to be seen in the print_catalogue.
                         #
                         except json.decoder.JSONDecodeError:
-                            print('{call_number} does not have information, did not load. (Text Fail 1)'. \
+                            print('{call_number} does not have information, '
+                                  'did not load. (Text Fail 1)'. \
                                   format(call_number=ind_text))
                         f_i.close()
                     else:

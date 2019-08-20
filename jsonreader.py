@@ -63,10 +63,10 @@ class Reader(object):
         """
         self.__parse_sentence__()
         self.text = []  # pylint: disable=attribute-defined-outside-init
-        for k, v in self.sentences.items():  # pylint: disable=redefined-outer-name
+        for k, values in self.sentences.items():  # pylint: disable=redefined-outer-name
             self.text.append(k)
             line = []
-            for key in v:
+            for key in values:
                 if key['node'] == 'd':
                     if 'label' in key.keys():
                         if len(line) > 0:  # pylint: disable=len-as-condition
@@ -200,7 +200,6 @@ class Reader(object):
         print('Ingesting corpus...')
         for call_number in self.texts:
             self.__ingest_text__(call_number)
-        print(len(self.failed_texts))
         print()
 
     def print_toc(self):
@@ -230,39 +229,49 @@ class Reader(object):
         :return:
         """
         text = self.texts[call_number]['text_file']
+        self.lines = []
         if len(catalog_filter) > 0:  # pylint: disable=len-as-condition
             if catalog_filter in text:
                 if catalog_filter == 'transliteration':
-                    print('\n'.join(text[catalog_filter]))
+                    lines = []
+                    for string in text[catalog_filter]:
+                        if '.' in string[0:8]:
+                            lines.append(string.split('. ')[1])
+                    self.lines = '\n'.join(lines)
                 elif text[catalog_filter] == text['transliteration']:
                     print('Filter not available.')
                 else:
-                    print('\n'.join(text[catalog_filter]))
+                    lines = []
+                    for string in text[catalog_filter]:
+                        if '.' in string[0:8]:
+                            lines.append(string.split('. ')[1])
+                    self.lines = '\n'.join(lines)
+                print(self.lines)
             else:
                 print('not a filter, use text_information for available filters.')
-                # make section that shows which filters are available (len > 0?)
-        else:
-            try:
-                print('\n'.join(text['transliteration']))
-            except TypeError:
-                print('\n'.join([str(line) for line in text['transliteration']]))
-            except KeyError:
-                print('Text does not exist in this corpus.')
+        # don't know if i need this...
+        #else:
+        #    try:
+        #        print('\n'.join(text['transliteration']))
+        #    except TypeError:
+        #        print('\n'.join([str(line) for line in text['transliteration']]))
+        #    except KeyError:
+        #        print('Text does not exist in this corpus.')
 
-    def print_single_text_lines(self, call_number):
+    def print_single_text(self, call_number):
         """
         Prints one text line by line.
         :param call_number: text you wish to print.
         :return:
         """
         self.__ingest_text__(call_number)
-        self.lines = []   # pylint: disable=attribute-defined-outside-init
+        lines = []   # pylint: disable=attribute-defined-outside-init
         self.tablet = []  # pylint: disable=attribute-defined-outside-init
         for text in self.textanalysis:
             for k, v in text.items():  # pylint: disable=redefined-outer-name
                 if k == 'cdl':
-                    self.lines.append(v)
-        for sets in self.lines:
+                    lines.append(v)
+        for sets in lines:
             line = []
             for key in sets:
                 if key['node'] == 'd':
