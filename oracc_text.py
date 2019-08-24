@@ -3,6 +3,8 @@ import json as JSON
 def recursive_walk(json, key):
     if isinstance(json, dict):
         # need to check for 'node': 'd' and 'type': 'line-start' in here and yield those
+        # I don't think we split here... we should check if we need line breaks and pass off
+        # to another function.
         for k, v in json.items():
             if k == key:
                 yield v
