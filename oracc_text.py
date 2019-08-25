@@ -16,7 +16,7 @@ def grab_translation(project, pnum):
         # TODO: add line detection
         # you just need to s.find(class_='xtr-label').get_text()
         s = bytes(s.get_text(), encoding="cp1252").decode()
-        translations.append(s)
+        translation.append(s)
     return translation
 
 
