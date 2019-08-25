@@ -1,6 +1,25 @@
 import json as JSON
 
 
+import requests
+from bs4 import BeautifulSoup
+
+
+def grab_translation(project, pnum):
+    translation = []
+    r = requests.get(f"http://oracc.org/{project}/{pnum}")
+    soup = BeautifulSoup(r.text)
+    for line in soup.find_all("p", class_="tr"):
+        s = BeautifulSoup(str(line))
+        # seems like SAA10 at least is in Windows-1252 (gross!)
+        # https://www.i18nqa.com/debug/utf8-debug.html
+        # TODO: add line detection
+        # you just need to s.find(class_='xtr-label').get_text()
+        s = bytes(s.get_text(), encoding="cp1252").decode()
+        translations.append(s)
+    return translation
+
+
 def grab_all(input_json, type, split_lines=False):
     def recursive_walk(json, type):
         if isinstance(json, dict):
@@ -25,7 +44,8 @@ def grab_all(input_json, type, split_lines=False):
 
 class FileReader:
     """
-    This class reads in a file object and converts it from json into a native python object.
+    This class reads in a file object and converts it from json into a native
+    python object.
     It should be identical in functionality to an API reader.
     """
 
@@ -37,7 +57,8 @@ class FileReader:
 
 class APIReader:
     """
-    This class reads in a URL json file from the ORACC API and turns it into a native python object.
+    This class reads in a URL json file from the ORACC API and turns it into a
+    native python object.
     It should be identical in functionality to the file reader.
     The ORACC API is currently non-functional.
     """
@@ -58,6 +79,8 @@ class ORACC_Text:
         self.translit = None
 
     def get_norm(self):
+        # I'm not sure of these if/else statements actually do anything with
+        # such small texts.
         if self.norm:
             return self.norm
         else:
