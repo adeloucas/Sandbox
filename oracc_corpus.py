@@ -52,3 +52,15 @@ class ORACC_Corpus:
             for word in self.texts[text].get_translit():
                 bow.append(word)
         return bow
+
+    def kwic(self, word, window=2):
+        # not super happy about bracketing the word
+        lines = []
+        for text in self.texts:
+            norm = self.texts[text].get_norm()
+            idxs = [i for i, x in enumerate(norm) if x == word]
+            for i in idxs:
+                start = i - window if i > window else 0
+                end = i + window + 1
+                lines.append(norm[start:end])
+        return lines
