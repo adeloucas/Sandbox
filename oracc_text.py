@@ -1,4 +1,3 @@
-import json as JSON
 from typing import Dict, List, Any
 
 import requests
@@ -42,39 +41,14 @@ def grab_all(input_json, type: str, split_lines: bool = False) -> List[str]:
     return output
 
 
-class FileReader:
-    """
-    This class reads in a file object and converts it from json into a native
-    python object.
-    It should be identical in functionality to an API reader.
-    """
-
-    def __init__(self, filename: str):
-        self.filename = filename
-        with open(self.filename) as f:
-            self.data: Dict[str, Any] = JSON.loads(f.read())
-
-
-class APIReader:
-    """
-    This class reads in a URL json file from the ORACC API and turns it into a
-    native python object.
-    It should be identical in functionality to the file reader.
-    The ORACC API is currently non-functional.
-    """
-
-    def __init__(self, url: str):
-        self.url = url
-        # TODO: request and process url
-
-
 class ORACC_Text:
     """
     This class represent a text from an ORACC corpus.
     """
 
-    def __init__(self, json: dict):
+    def __init__(self, json: dict, metadata: dict = {}):
         self.json: Dict[str, Any] = json
+        self.metadata: Dict[str, Any] = metadata
         self.norm: List[str] = []
         self.translit: List[str] = []
 
