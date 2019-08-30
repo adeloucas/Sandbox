@@ -53,7 +53,7 @@ class ORACC_Corpus:
                 bow.append(word)
         return bow
 
-    def kwic(self, word, window=2):
+    def kwic(self, word: str, window: int = 2):
         # not super happy about bracketing the word
         lines = []
         for text in self.texts:
@@ -64,3 +64,12 @@ class ORACC_Corpus:
                 end = i + window + 1
                 lines.append(norm[start:end])
         return lines
+
+    def pprint_kwic(self, word: str, window: int = 2) -> None:
+        lines = [
+            [f"[[{w}]]" if w == word else w for w in line]
+            for line in self.kwic(word, window)
+        ]
+        print(f"KWIC for {word}:")
+        for line in lines:
+            print(" ".join(line))

@@ -20,5 +20,4 @@ print(f"Transliteration of: {pnum}")
 print(f"Title: {text.metadata.get('title')}")
 c.texts[pnum].pprint_translit()
 
-print("\nKWIC for šarri:")
-c.kwic("šarri")[:5]
+c.pprint_kwic('šarri')
