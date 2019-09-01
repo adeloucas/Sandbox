@@ -47,8 +47,10 @@ class ORACC_Text:
     """
 
     def __init__(self, json: dict, metadata: dict = {}):
+        self.pnum: str = json["textid"]
         self.json: Dict[str, Any] = json
         self.metadata: Dict[str, Any] = metadata
+        self.ancient_author: str = self.metadata["ancient_author"]
         self.norm: List[str] = []
         self.translit: List[str] = []
 
